@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Tracker Pro</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="text-slate-800 pb-20">
+
+    <nav class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-orange-500 text-2xl"></i>
+                        <h1 class="text-xl font-bold text-slate-900 tracking-tight">100 Days Challenge</h1>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex items-center gap-3">
+                    <button onclick="openAddTaskModal()" class="text-sm bg-white border border-slate-200 text-slate-700 px-3 py-2 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-plus text-indigo-500"></i> Add Task
+                    </button>
+                    <button onclick="openSetupModal()" class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-flag-checkered"></i> New Goal
+                    </button>
+                    <button onclick="openResetModal()" class="text-xs text-red-400 hover:text-red-600 font-medium px-2" id="reset-btn">Reset</button>
+                </div>
+
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="text-slate-500 hover:text-slate-700 p-2"><i class="fa-solid fa-bars text-xl"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-100 absolute w-full shadow-lg z-30 slide-down">
+            <div class="px-4 py-3 space-y-2">
+                <button onclick="openAddTaskModal()" class="w-full text-left flex items-center gap-2 text-sm text-slate-700 font-medium p-2 rounded-lg hover:bg-slate-50">
+                    <i class="fa-solid fa-plus text-indigo-500"></i> Add New Task
+                </button>
+                <button onclick="openSetupModal()" class="w-full text-left flex items-center gap-2 text-sm text-indigo-600 font-medium p-2 rounded-lg hover:bg-indigo-50">
+                    <i class="fa-solid fa-flag-checkered"></i> Create New Goal
+                </button>
+                <button onclick="openResetModal()" class="w-full text-left flex items-center gap-2 text-sm text-red-500 font-medium p-2 rounded-lg hover:bg-red-50">
+                    <i class="fa-solid fa-trash-can"></i> Reset Progress
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div class="mb-6 flex flex-wrap justify-between items-end gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900" id="challengeTitle">Challenge</h2>
+                <p class="text-sm text-slate-500" id="dateRangeDisplay">Loading...</p>
+            </div>
+
+            <div class="flex items-center bg-orange-50 px-4 py-2 rounded-xl border border-orange-100 shadow-sm" id="mainStreakContainer">
+                <i class="fa-solid fa-fire text-orange-500 text-xl mr-3 transition-transform" id="mainFireIcon"></i>
+                <div class="flex flex-col">
+                    <span class="text-[10px] uppercase font-bold text-orange-400 leading-none mb-0.5">Current Streak</span>
+                    <span class="text-xl font-bold text-slate-800 leading-none" id="globalStreak">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8" id="statsGrid">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-sm font-medium text-slate-500">Total Progress</p>
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600"><i class="fa-solid fa-chart-pie"></i></div>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900" id="totalPercent">0%</h2>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 mt-3">
+                    <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-100 mb-6 flex overflow-x-auto">
+            <button onclick="setTab('today')" id="tab-today" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bullseye"></i> Today <span id="badge-today" class="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+            </button>
+            <button onclick="setTab('upcoming')" id="tab-upcoming" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap flex items-center justify-center gap-2">
+                <i class="fa-solid fa-calendar-days"></i> Upcoming <span id="badge-upcoming" class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+            </button>
+            <button onclick="setTab('achieved')" id="tab-achieved" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap flex items-center justify-center gap-2">
+                <i class="fa-solid fa-circle-check"></i> Achieved <span id="badge-achieved" class="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+            </button>
+            <button onclick="setTab('missed')" id="tab-missed" class="tab-btn flex-1 py-2 px-4 rounded-lg text-sm font-medium whitespace-nowrap flex items-center justify-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation"></i> Missed <span id="badge-missed" class="bg-red-100 text-red-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+            </button>
+        </div>
+
+        <h3 class="text-lg font-bold text-slate-800 mb-4" id="sectionTitle">Today's Focus</h3>
+
+        <div id="emptyState" class="hidden text-center py-12">
+            <div class="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-2xl"><i class="fa-solid fa-clipboard-list"></i></div>
+            <p class="text-slate-500 font-medium" id="emptyStateMsg">No tasks found.</p>
+        </div>
+
+        <div id="daysGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </div>
+
+    <div id="setupModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="setupBackdrop"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full max-w-md scale-95 opacity-0" id="setupPanel">
+                    <div class="bg-white px-6 py-6">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i class="fa-solid fa-flag-checkered"></i></div>
+                            <h3 class="text-xl font-bold text-slate-900">Create New Goal</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Total Days</label>
+                                    <input type="number" id="inputDays" value="100" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Start Date</label>
+                                    <input type="date" id="inputDate" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Initial Tasks</label>
+                                <div class="space-y-2">
+                                    <input type="text" id="taskName1" placeholder="Task 1 (e.g. College)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+                                    <input type="text" id="taskName2" placeholder="Task 2 (e.g. GSoC)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+                                    <input type="text" id="taskName3" placeholder="Task 3 (e.g. DSA)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex gap-2">
+                                <i class="fa-solid fa-circle-info text-yellow-600 mt-0.5 text-xs"></i>
+                                <p class="text-xs text-yellow-700">Starting a new goal will erase current progress.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-2">
+                        <button onclick="startNewChallenge()" class="flex-1 rounded-lg bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Create Goal</button>
+                        <button onclick="closeSetupModal()" class="flex-1 rounded-lg bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addTaskModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="addTaskBackdrop"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full max-w-sm scale-95 opacity-0" id="addTaskPanel">
+                    <div class="bg-white px-6 py-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-plus"></i></div>
+                            <h3 class="text-lg font-bold text-slate-900">Add New Task</h3>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Task Name</label>
+                            <input type="text" id="newTaskInput" placeholder="e.g. Reading, Gym, Meditation" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700 flex gap-2">
+                            <i class="fa-solid fa-circle-info mt-0.5"></i>
+                            <p>This task will be added to <b>Today and Future</b> days only. Past history remains unchanged.</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-2">
+                        <button onclick="confirmAddTask()" class="flex-1 rounded-lg bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">Add Task</button>
+                        <button onclick="closeAddTaskModal()" class="flex-1 rounded-lg bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="resetModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0" id="resetBackdrop"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-sm scale-95 opacity-0" id="resetPanel">
+                    <div class="bg-white p-6 text-center">
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4"><i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i></div>
+                        <h3 class="text-lg font-bold text-slate-900">Reset Progress?</h3>
+                        <p class="text-sm text-slate-500 mt-2">This deletes all checked days. Config will remain.</p>
+                    </div>
+                    <div class="bg-slate-50 px-4 py-3 flex gap-3">
+                        <button onclick="confirmReset()" class="flex-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500">Reset</button>
+                        <button onclick="closeResetModal()" class="flex-1 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0" id="successBackdrop"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-sm scale-95 opacity-0" id="successPanel">
+                    <div class="bg-white p-6 text-center">
+                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 mb-4">
+                            <i class="fa-solid fa-check text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900">Reset Successful</h3>
+                        <p class="text-sm text-slate-500 mt-2">Redirecting to home page...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
